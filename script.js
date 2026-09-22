@@ -3,6 +3,11 @@
  * O botão "Gerar PDF" captura a própria página (mesmo layout, cores e logo
  * do site) com html2canvas e monta um PDF paginado em A4 com jsPDF,
  * baixando o arquivo no computador de quem preencheu.
+ *
+ * "Salvar dados" / "Carregar dados" guardam e restauram os valores do
+ * formulário num arquivo .json à parte — assim dá para retomar uma ficha
+ * incompleta depois, sem preencher tudo de novo, sem afetar o PDF (que
+ * continua sendo só uma "foto" fiel da tela).
  */
 (function () {
   "use strict";
@@ -11,6 +16,9 @@
   var sheet = document.querySelector(".sheet");
   var statusText = document.getElementById("statusText");
   var btnGerarPdf = document.getElementById("btnGerarPdf");
+  var btnSalvarDados = document.getElementById("btnSalvarDados");
+  var btnCarregarDados = document.getElementById("btnCarregarDados");
+  var inputCarregarDados = document.getElementById("inputCarregarDados");
   var toast = document.getElementById("pdfToast");
 
   function markDirty() {
@@ -30,6 +38,18 @@
       }
     });
     return data;
+  }
+
+  function fillFromData(data) {
+    Array.prototype.forEach.call(form.elements, function (el) {
+      if (!el.name || !(el.name in data)) return;
+      if (el.type === "radio") {
+        el.checked = el.value === data[el.name];
+      } else {
+        el.value = data[el.name];
+      }
+    });
+    markDirty();
   }
 
   function sanitizeFilename(s) {
@@ -212,4 +232,57 @@
         btnGerarPdf.textContent = "Gerar PDF";
       });
   });
+
+  if (btnSalvarDados) {
+    btnSalvarDados.addEventListener("click", function () {
+      var data = collectData();
+      var primaryName = form.dataset.primaryName || "reclamante";
+      var filePrefix = form.dataset.filePrefix || "Ficha";
+      var filename = filePrefix + "_" + sanitizeFilename(data[primaryName]) + "_dados.json";
+
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast.textContent = "Dados salvos em " + filename + ".";
+      toast.className = "toast ok";
+    });
+  }
+
+  if (btnCarregarDados && inputCarregarDados) {
+    btnCarregarDados.addEventListener("click", function () {
+      inputCarregarDados.value = "";
+      inputCarregarDados.click();
+    });
+
+    inputCarregarDados.addEventListener("change", function () {
+      var file = inputCarregarDados.files && inputCarregarDados.files[0];
+      if (!file) return;
+
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var data = JSON.parse(String(reader.result));
+          fillFromData(data);
+          toast.textContent = "Dados carregados. Confira e complete o que faltar.";
+          toast.className = "toast ok";
+        } catch (err) {
+          console.error(err);
+          toast.textContent = "Não foi possível ler esse arquivo de dados.";
+          toast.className = "toast error";
+        }
+      };
+      reader.onerror = function () {
+        toast.textContent = "Não foi possível ler esse arquivo de dados.";
+        toast.className = "toast error";
+      };
+      reader.readAsText(file);
+    });
+  }
 })();

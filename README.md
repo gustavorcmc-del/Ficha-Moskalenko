@@ -54,3 +54,20 @@ Não há build, backend ou dependências para instalar — é só abrir o
 - Se quiser trocar a logo, basta substituir `assets/logo-white.png` mantendo
   o mesmo nome de arquivo — ela é usada automaticamente no cabeçalho de
   todas as páginas e, por consequência, também aparece no PDF gerado.
+
+## Continuar uma ficha depois ("Salvar dados" / "Carregar dados")
+
+O PDF gerado é só uma "foto" da tela — não dá para editar o texto dentro
+dele depois de baixado. Para quem esquece de preencher algum campo e precisa
+completar a ficha mais tarde (ou passar para outra pessoa terminar), use os
+botões ao lado de "Gerar PDF":
+
+- **Salvar dados**: baixa um arquivo `.json` (não é o PDF) com tudo que foi
+  digitado até aquele momento.
+- **Carregar dados**: abre esse arquivo `.json` de volta e preenche o
+  formulário automaticamente — inclusive campos de rádio como "Motivo do
+  desligamento" — pronto para completar o que faltava.
+
+Depois de carregar e completar os dados, é só clicar em "Gerar PDF"
+normalmente. O arquivo `.json` não tem nenhuma formatação, só serve como
+"rascunho" para o próprio site reabrir depois.
