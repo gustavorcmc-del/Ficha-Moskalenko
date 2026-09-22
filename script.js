@@ -1,13 +1,19 @@
 /**
  * Ficha Cliente — Moskalenko Advogados
- * O botão "Gerar PDF" captura a própria página (mesmo layout, cores e logo
- * do site) com html2canvas e monta um PDF paginado em A4 com jsPDF,
- * baixando o arquivo no computador de quem preencheu.
  *
- * "Salvar dados" / "Carregar dados" guardam e restauram os valores do
- * formulário num arquivo .json à parte — assim dá para retomar uma ficha
- * incompleta depois, sem preencher tudo de novo, sem afetar o PDF (que
- * continua sendo só uma "foto" fiel da tela).
+ * "Gerar PDF": captura a própria página (mesmo layout, cores e logo do
+ * site) com html2canvas e monta um PDF paginado em A4 com jsPDF. No final
+ * do PDF, adiciona uma página extra de TEXTO REAL (não imagem) com os
+ * dados do formulário codificados — essa página é só para o próprio site
+ * conseguir reler depois; não faz parte da ficha oficial.
+ *
+ * "Carregar PDF": lê um PDF gerado por este site (usando pdf.js para achar
+ * essa página de dados escondida) e preenche o formulário de novo, pronto
+ * para editar e gerar uma nova versão do PDF.
+ *
+ * O formulário também salva sozinho no navegador (localStorage) enquanto a
+ * pessoa digita, então fechar a aba e voltar depois no mesmo computador
+ * também recupera os dados automaticamente, sem precisar de nenhum botão.
  */
 (function () {
   "use strict";
@@ -16,10 +22,18 @@
   var sheet = document.querySelector(".sheet");
   var statusText = document.getElementById("statusText");
   var btnGerarPdf = document.getElementById("btnGerarPdf");
-  var btnSalvarDados = document.getElementById("btnSalvarDados");
-  var btnCarregarDados = document.getElementById("btnCarregarDados");
-  var inputCarregarDados = document.getElementById("inputCarregarDados");
+  var btnCarregarPdf = document.getElementById("btnCarregarPdf");
+  var inputCarregarPdf = document.getElementById("inputCarregarPdf");
   var toast = document.getElementById("pdfToast");
+
+  var DATA_MARK_START = "===MOSKALENKO_DATA_START===";
+  var DATA_MARK_END = "===MOSKALENKO_DATA_END===";
+  var DRAFT_KEY = "moskalenko_ficha_" + (form.dataset.filePrefix || "form") + "_draft";
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
 
   function markDirty() {
     statusText.textContent = "Preenchendo…";
@@ -50,6 +64,7 @@
       }
     });
     markDirty();
+    scheduleSaveDraft();
   }
 
   function sanitizeFilename(s) {
@@ -61,6 +76,83 @@
         .replace(/^_+|_+$/g, "")
         .slice(0, 60) || "cliente"
     );
+  }
+
+  // ---------- Rascunho automático no navegador (localStorage) ----------
+  // Nunca deixamos falhas de armazenamento (modo privado, etc.) quebrarem
+  // o resto do formulário.
+  function safeLSGet(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function safeLSSet(key, value) {
+    try { window.localStorage.setItem(key, value); return true; } catch (e) { return false; }
+  }
+  function safeLSRemove(key) {
+    try { window.localStorage.removeItem(key); } catch (e) {}
+  }
+  function formatDraftTime(iso) {
+    try {
+      var d = new Date(iso);
+      var pad = function (n) { return n < 10 ? "0" + n : "" + n; };
+      return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    } catch (e) {
+      return "";
+    }
+  }
+
+  var saveDraftTimer = null;
+  function scheduleSaveDraft() {
+    if (saveDraftTimer) clearTimeout(saveDraftTimer);
+    saveDraftTimer = setTimeout(saveDraftNow, 500);
+  }
+  function saveDraftNow() {
+    var data = collectData();
+    var isEmpty = Object.keys(data).every(function (k) { return !data[k]; });
+    if (isEmpty) {
+      safeLSRemove(DRAFT_KEY);
+      return;
+    }
+    var savedAt = new Date().toISOString();
+    var ok = safeLSSet(DRAFT_KEY, JSON.stringify({ savedAt: savedAt, data: data }));
+    if (ok) {
+      statusText.textContent = "Rascunho salvo automaticamente às " + formatDraftTime(savedAt).split(" ")[1] + ".";
+    }
+  }
+  form.addEventListener("input", scheduleSaveDraft);
+  form.addEventListener("change", scheduleSaveDraft);
+
+  (function loadDraftOnInit() {
+    var raw = safeLSGet(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.data) return;
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (!el.name || !(el.name in parsed.data)) return;
+        if (el.type === "radio") {
+          el.checked = el.value === parsed.data[el.name];
+        } else {
+          el.value = parsed.data[el.name];
+        }
+      });
+      statusText.textContent = "Rascunho recuperado automaticamente (salvo em " + formatDraftTime(parsed.savedAt) + ").";
+    } catch (e) {
+      // rascunho corrompido — ignora
+    }
+  })();
+
+  // ---------- Codificação Unicode-segura para Base64 ----------
+  function b64EncodeUnicode(str) {
+    var bytes = new TextEncoder().encode(str);
+    var binary = "";
+    for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+  function b64DecodeUnicode(b64) {
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
   }
 
   // html2canvas rasterizes native form controls using their live DOM state,
@@ -96,6 +188,54 @@
         s.el.style.display = "";
         s.span.remove();
       });
+    }
+  }
+
+  // Adds one extra page at the end of the PDF holding the form data as real
+  // (selectable) PDF text, wrapped in markers, so this exact PDF file can
+  // later be re-read by "Carregar PDF" to restore the form.
+  function appendDataPage(doc, data) {
+    var PAGE_W = 210, PAGE_H = 297, MARGIN = 18;
+    var payload = JSON.stringify(data);
+    var encoded = b64EncodeUnicode(payload);
+    var marker = DATA_MARK_START + encoded + DATA_MARK_END;
+
+    doc.addPage();
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(20, 20, 20);
+    doc.text("Página de dados internos — não faz parte da ficha", MARGIN, 22);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    var intro = doc.splitTextToSize(
+      "Esta página guarda os dados preenchidos nesta ficha, para que o próprio " +
+        "site possa reler este PDF depois (botão \"Carregar PDF\") e permitir " +
+        "editar e gerar uma nova versão. Pode ser removida sem problema ao " +
+        "enviar a ficha oficialmente para terceiros.",
+      PAGE_W - MARGIN * 2
+    );
+    doc.text(intro, MARGIN, 30);
+
+    var y = 30 + intro.length * 4.2 + 10;
+
+    doc.setFont("courier", "normal");
+    doc.setFontSize(6);
+    doc.setTextColor(160, 160, 160);
+
+    var CHARS_PER_LINE = 100;
+    var lineHeight = 2.6;
+    for (var i = 0; i < marker.length; i += CHARS_PER_LINE) {
+      if (y > PAGE_H - MARGIN) {
+        doc.addPage();
+        doc.setFont("courier", "normal");
+        doc.setFontSize(6);
+        doc.setTextColor(160, 160, 160);
+        y = MARGIN;
+      }
+      doc.text(marker.slice(i, i + CHARS_PER_LINE), MARGIN, y);
+      y += lineHeight;
     }
   }
 
@@ -201,6 +341,8 @@
             renderedY += sliceHeightPx;
           }
 
+          appendDataPage(doc, collectData());
+
           return doc;
         });
     });
@@ -233,56 +375,62 @@
       });
   });
 
-  if (btnSalvarDados) {
-    btnSalvarDados.addEventListener("click", function () {
-      var data = collectData();
-      var primaryName = form.dataset.primaryName || "reclamante";
-      var filePrefix = form.dataset.filePrefix || "Ficha";
-      var filename = filePrefix + "_" + sanitizeFilename(data[primaryName]) + "_dados.json";
-
-      var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      toast.textContent = "Dados salvos em " + filename + ".";
-      toast.className = "toast ok";
+  // ---------- Carregar PDF ----------
+  function extractDataFromPdf(file) {
+    if (!window.pdfjsLib) return Promise.reject(new Error("Leitor de PDF indisponível"));
+    return file.arrayBuffer().then(function (buffer) {
+      return window.pdfjsLib.getDocument({ data: buffer }).promise.then(function (pdf) {
+        var pageTexts = [];
+        for (var p = 1; p <= pdf.numPages; p++) {
+          pageTexts.push(
+            pdf.getPage(p).then(function (page) {
+              return page.getTextContent().then(function (content) {
+                return content.items.map(function (it) { return it.str; }).join("");
+              });
+            })
+          );
+        }
+        return Promise.all(pageTexts).then(function (texts) {
+          var fullText = texts.join("");
+          var startIdx = fullText.indexOf(DATA_MARK_START);
+          var endIdx = fullText.indexOf(DATA_MARK_END);
+          if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
+            throw new Error(
+              "Este PDF não tem os dados internos da ficha (pode ter sido gerado por uma versão antiga do site)."
+            );
+          }
+          var encoded = fullText.slice(startIdx + DATA_MARK_START.length, endIdx);
+          var json = b64DecodeUnicode(encoded);
+          return JSON.parse(json);
+        });
+      });
     });
   }
 
-  if (btnCarregarDados && inputCarregarDados) {
-    btnCarregarDados.addEventListener("click", function () {
-      inputCarregarDados.value = "";
-      inputCarregarDados.click();
+  if (btnCarregarPdf && inputCarregarPdf) {
+    btnCarregarPdf.addEventListener("click", function () {
+      inputCarregarPdf.value = "";
+      inputCarregarPdf.click();
     });
 
-    inputCarregarDados.addEventListener("change", function () {
-      var file = inputCarregarDados.files && inputCarregarDados.files[0];
+    inputCarregarPdf.addEventListener("change", function () {
+      var file = inputCarregarPdf.files && inputCarregarPdf.files[0];
       if (!file) return;
 
-      var reader = new FileReader();
-      reader.onload = function () {
-        try {
-          var data = JSON.parse(String(reader.result));
+      toast.textContent = "Lendo PDF…";
+      toast.className = "toast";
+
+      extractDataFromPdf(file)
+        .then(function (data) {
           fillFromData(data);
-          toast.textContent = "Dados carregados. Confira e complete o que faltar.";
+          toast.textContent = "Dados carregados a partir do PDF. Edite o que precisar e gere o PDF de novo.";
           toast.className = "toast ok";
-        } catch (err) {
+        })
+        .catch(function (err) {
           console.error(err);
-          toast.textContent = "Não foi possível ler esse arquivo de dados.";
+          toast.textContent = err.message || "Não foi possível ler os dados desse PDF.";
           toast.className = "toast error";
-        }
-      };
-      reader.onerror = function () {
-        toast.textContent = "Não foi possível ler esse arquivo de dados.";
-        toast.className = "toast error";
-      };
-      reader.readAsText(file);
+        });
     });
   }
 })();
