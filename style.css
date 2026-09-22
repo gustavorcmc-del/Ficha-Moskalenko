@@ -54,6 +54,12 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* When <html> has no background of its own, the browser paints <body>'s
+   background across the whole canvas instead of just body's box — which
+   re-triggers body.home's gradient a second time past the end of the
+   page's actual content. Giving html a flat background of its own stops
+   that propagation, so the gradient below only ever paints once. */
+html{ background: var(--paper); }
 
 body{
   background: var(--paper);
@@ -61,6 +67,13 @@ body{
   font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   padding-inline: 16px;
   padding-block: 28px 60px;
+  min-height: 100vh;
+}
+/* Home page only: a soft wash in the brand's navy family behind the hero,
+   easing into the plain white/paper background the rest of the page uses —
+   a little identity without losing the clean, uncluttered feel. */
+body.home{
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--paper) 460px);
 }
 
 .wrap{
