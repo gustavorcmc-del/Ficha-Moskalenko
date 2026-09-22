@@ -24,6 +24,7 @@
   var btnGerarPdf = document.getElementById("btnGerarPdf");
   var btnCarregarPdf = document.getElementById("btnCarregarPdf");
   var inputCarregarPdf = document.getElementById("inputCarregarPdf");
+  var btnApagarTudo = document.getElementById("btnApagarTudo");
   var toast = document.getElementById("pdfToast");
 
   var DATA_MARK_START = "===MOSKALENKO_DATA_START===";
@@ -443,6 +444,19 @@
           toast.textContent = err.message || "Não foi possível ler os dados desse PDF.";
           toast.className = "toast error";
         });
+    });
+  }
+
+  if (btnApagarTudo) {
+    btnApagarTudo.addEventListener("click", function () {
+      var data = collectData();
+      var hasData = !Object.keys(data).every(function (k) { return !data[k]; });
+      if (hasData && !window.confirm("Apagar todos os campos preenchidos nesta ficha? Essa ação não pode ser desfeita.")) {
+        return;
+      }
+      clearFormForNextClient();
+      toast.textContent = "Formulário apagado.";
+      toast.className = "toast";
     });
   }
 })();
