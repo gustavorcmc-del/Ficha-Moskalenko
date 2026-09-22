@@ -1,21 +1,29 @@
-# Ficha Cliente — Moskalenko Advogados
+# Fichas Cliente — Moskalenko Advogados
 
-Site estático (HTML + CSS + JS puro) com o formulário digital de atendimento
-(trabalhista/previdenciário). O único recurso da página é o botão **Gerar
-PDF**, que monta um PDF com todos os dados preenchidos, no mesmo layout da
-ficha impressa do escritório, e baixa o arquivo no computador de quem
-preencheu.
+Site estático (HTML + CSS + JS puro) com as fichas digitais de atendimento
+do escritório. A página inicial (`index.html`) mostra um cartão por área do
+direito; cada ficha tem um único recurso, o botão **Gerar PDF**, que monta
+um PDF com todos os dados preenchidos, no mesmo layout da tela, e baixa o
+arquivo no computador de quem preencheu.
 
 ## Arquivos
 
 ```
-index.html   → estrutura da página e todos os campos do formulário
-style.css    → paleta, tipografia e layout (mesma identidade visual)
-script.js    → coleta os campos e monta o PDF (usa a biblioteca jsPDF via CDN)
+index.html               → página inicial com os cartões de cada área
+ficha-trabalhista.html   → ficha de atendimento trabalhista
+ficha-consumidor.html    → ficha de atendimento (direito do consumidor)
+style.css                → paleta, tipografia e layout (mesma identidade visual)
+script.js                → coleta os campos e monta o PDF (usado pelas duas fichas)
 assets/
-  logo-white.png → logo usada no cabeçalho da página (fundo azul-marinho)
-  logo-black.png → versão da logo usada dentro do PDF (fundo branco)
+  logo-white.png → logo usada nos cabeçalhos (fundo azul-marinho)
+  logo-black.png → versão preta da logo, não usada atualmente mas mantida como reserva
 ```
+
+A área **Previdenciário** aparece na página inicial como "Em breve" — ainda
+não há um cartão clicável para ela. Quando o escritório enviar o modelo da
+ficha impressa dessa área, basta pedir para criar `ficha-previdenciario.html`
+seguindo o mesmo padrão e trocar o cartão desabilitado por um link, igual às
+outras duas.
 
 Não há build, backend ou dependências para instalar — é só abrir o
 `index.html` num navegador ou publicar a pasta como está.
@@ -35,11 +43,14 @@ Não há build, backend ou dependências para instalar — é só abrir o
 
 - Os dados digitados nos campos ficam só no navegador de quem está
   preenchendo — nada é enviado para nenhum servidor.
-- Ao clicar em "Gerar PDF", o JavaScript (`script.js`) monta o documento com
-  a biblioteca [jsPDF](https://github.com/parallax/jsPDF) e aciona o
-  download do arquivo (`Ficha_NomeDoReclamante.pdf`).
-- Se quiser trocar a logo, basta substituir `assets/logo-white.png` (usada
-  na tela) e `assets/logo-black.png` (usada no PDF) mantendo os mesmos
-  nomes de arquivo — e atualizar a constante `LOGO_B64` em `script.js`
-  (ela embute a logo preta diretamente no código para o PDF não depender de
-  carregar a imagem por fora).
+- Ao clicar em "Gerar PDF", o JavaScript (`script.js`) tira uma "foto" da
+  própria tela preenchida (com [html2canvas](https://html2canvas.hertzen.com/))
+  e monta um PDF paginado com [jsPDF](https://github.com/parallax/jsPDF) —
+  por isso o PDF sai sempre idêntico ao que está na tela, cores e logo
+  incluídas.
+- O nome do arquivo baixado usa o campo principal de cada ficha (ex.:
+  `Ficha_Trabalhista_NomeDoReclamante.pdf` ou
+  `Ficha_Consumidor_NomeDoAutor.pdf`).
+- Se quiser trocar a logo, basta substituir `assets/logo-white.png` mantendo
+  o mesmo nome de arquivo — ela é usada automaticamente no cabeçalho de
+  todas as páginas e, por consequência, também aparece no PDF gerado.

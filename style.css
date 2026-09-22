@@ -68,6 +68,127 @@ body{
   margin: 0 auto;
 }
 
+/* ---------- Back link ---------- */
+.back-link{
+  display:inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+.back-link:hover{ color: var(--accent-ink); }
+
+/* ---------- Home hero ---------- */
+.home-hero{
+  position: relative;
+  padding: 48px 34px 42px;
+  background: linear-gradient(135deg, var(--grad-1), var(--grad-2));
+  color: #f5f8ff;
+  border-radius: 14px;
+  margin-bottom: 22px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.home-hero .brand-logo{
+  position: absolute;
+  top: 26px;
+  right: 30px;
+  height: 26px;
+  width: auto;
+}
+@media (max-width: 560px){
+  .home-hero .brand-logo{ position: static; display:block; margin-bottom: 16px; height: 20px; }
+}
+.home-hero .eyebrow{
+  font-size: 11.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #bcd0f2;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.home-hero h1{
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 4.6vw, 38px);
+  margin: 0 0 10px;
+  text-wrap: balance;
+  color: #ffffff;
+}
+.home-hero .sub{
+  color: #cfdcf4;
+  font-size: 14px;
+  margin: 0;
+  max-width: 46ch;
+}
+
+/* ---------- Practice cards ---------- */
+.card-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 720px){
+  .card-grid{ grid-template-columns: 1fr; }
+}
+.practice-card{
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px 22px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: border-color .15s ease, transform .1s ease;
+}
+.practice-card:not(.is-disabled):hover{
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.practice-card h2{
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--accent-ink);
+}
+.practice-card p{
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0;
+  flex: 1;
+}
+.practice-tag{
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 100px;
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+}
+.practice-tag-soon{
+  color: var(--ink-soft);
+  background: var(--field-bg);
+}
+.practice-cta{
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+.practice-card.is-disabled{
+  opacity: .62;
+  cursor: default;
+}
+.practice-cta-disabled{
+  color: var(--ink-soft);
+}
+
 /* ---------- Toolbar ---------- */
 .toolbar{
   display:flex;

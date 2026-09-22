@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha Consumidor — Moskalenko Advogados</title>
+  <meta name="description" content="Ficha digital de atendimento para a área de direito do consumidor.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="wrap">
+
+    <a class="back-link" href="index.html">← Voltar para a página inicial</a>
+
+    <div class="toolbar">
+      <div class="status-pill"><span class="status-dot" id="statusDot"></span><span id="statusText">Formulário pronto para preenchimento</span></div>
+      <div class="toolbar-actions">
+        <span class="toast" id="pdfToast"></span>
+        <button type="button" class="primary" id="btnGerarPdf">Gerar PDF</button>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div class="letterhead">
+        <img class="brand-logo" src="assets/logo-white.png" alt="Moskalenko Advogados">
+        <p class="eyebrow">Ficha de atendimento</p>
+        <h1>Ficha Cliente</h1>
+        <p class="sub">Preencha durante a entrevista inicial. Os campos seguem a mesma ordem da ficha impressa.</p>
+        <div class="areas">
+          <span class="tag">Direito do Consumidor</span>
+        </div>
+      </div>
+
+      <form id="fichaForm" autocomplete="off" data-primary-name="autor" data-file-prefix="Ficha_Consumidor">
+
+        <section class="block">
+          <h2>Entrevista</h2>
+          <div class="grid cols-2">
+            <div class="field">
+              <label for="entrevista">Entrevista (responsável)</label>
+              <input type="text" id="entrevista" name="entrevista" placeholder="Nome de quem realizou o atendimento">
+            </div>
+            <div class="field">
+              <label for="telefone">Telefones</label>
+              <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2>Dados do autor</h2>
+          <div class="grid cols-2">
+            <div class="field span-2">
+              <label for="autor">Autor</label>
+              <input type="text" id="autor" name="autor" placeholder="Nome completo do cliente">
+            </div>
+            <div class="field span-2">
+              <label for="endereco">Endereço</label>
+              <input type="text" id="endereco" name="endereco" placeholder="Rua, número, bairro, cidade/UF, CEP">
+            </div>
+            <div class="field">
+              <label for="cpf">CPF nº</label>
+              <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00">
+            </div>
+            <div class="field">
+              <label for="rg">RG</label>
+              <input type="text" id="rg" name="rg">
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2>Tipo de ação</h2>
+          <div class="field">
+            <label for="tipoAcao">Tipo de ação</label>
+            <input type="text" id="tipoAcao" name="tipoAcao" placeholder="Ex.: Indenização por danos morais e materiais">
+          </div>
+        </section>
+
+        <section class="block">
+          <h2>Acionado(s)</h2>
+          <p class="block-note">Empresa(s) ou pessoa(s) contra quem a ação será proposta.</p>
+
+          <div class="reclamado-card">
+            <p class="card-title">Acionado 1</p>
+            <div class="grid cols-2">
+              <div class="field span-2">
+                <label for="acionado1Nome">Nome / Razão social</label>
+                <input type="text" id="acionado1Nome" name="acionado1Nome">
+              </div>
+              <div class="field span-2">
+                <label for="acionado1Endereco">Endereço</label>
+                <input type="text" id="acionado1Endereco" name="acionado1Endereco">
+              </div>
+              <div class="field">
+                <label for="acionado1Cnpj">CNPJ nº</label>
+                <input type="text" id="acionado1Cnpj" name="acionado1Cnpj" placeholder="00.000.000/0000-00">
+              </div>
+            </div>
+          </div>
+
+          <div class="reclamado-card">
+            <p class="card-title">Acionado 2</p>
+            <div class="grid cols-2">
+              <div class="field span-2">
+                <label for="acionado2Nome">Nome / Razão social</label>
+                <input type="text" id="acionado2Nome" name="acionado2Nome">
+              </div>
+              <div class="field span-2">
+                <label for="acionado2Endereco">Endereço</label>
+                <input type="text" id="acionado2Endereco" name="acionado2Endereco">
+              </div>
+              <div class="field">
+                <label for="acionado2Cnpj">CNPJ nº</label>
+                <input type="text" id="acionado2Cnpj" name="acionado2Cnpj" placeholder="00.000.000/0000-00">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2>Descrição fática</h2>
+          <p class="block-note">Relato do cliente sobre os fatos que fundamentam a ação.</p>
+          <div class="field">
+            <textarea id="descricaoFatica" name="descricaoFatica" placeholder="Descreva os fatos narrados pelo cliente..."></textarea>
+          </div>
+        </section>
+
+        <div class="obs-box">
+          <strong>DECLARAÇÃO:</strong> declaro sob minha responsabilidade a total veracidade das informações aqui prestadas.
+        </div>
+
+      </form>
+    </div>
+
+    <p class="footer-note">Ficha digital de atendimento — uso interno do escritório.</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

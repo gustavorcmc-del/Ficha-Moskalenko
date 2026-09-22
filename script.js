@@ -195,7 +195,9 @@
     buildPdfFromDom()
       .then(function (doc) {
         var data = collectData();
-        var filename = "Ficha_" + sanitizeFilename(data.reclamante) + ".pdf";
+        var primaryName = form.dataset.primaryName || "reclamante";
+        var filePrefix = form.dataset.filePrefix || "Ficha";
+        var filename = filePrefix + "_" + sanitizeFilename(data[primaryName]) + ".pdf";
         doc.save(filename);
         toast.textContent = "PDF gerado com sucesso.";
         toast.className = "toast ok";
