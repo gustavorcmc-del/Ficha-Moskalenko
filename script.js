@@ -29,6 +29,7 @@
   var DATA_MARK_START = "===MOSKALENKO_DATA_START===";
   var DATA_MARK_END = "===MOSKALENKO_DATA_END===";
   var DRAFT_KEY = "moskalenko_ficha_" + (form.dataset.filePrefix || "form") + "_draft";
+  var INITIAL_STATUS_TEXT = statusText.textContent;
 
   if (window.pdfjsLib) {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -140,6 +141,16 @@
       // rascunho corrompido — ignora
     }
   })();
+
+  // Depois que o PDF de um cliente é baixado com sucesso, o atendimento
+  // está encerrado — limpa tudo sozinho para o próximo cliente, em vez de
+  // deixar quem preencheu apagar campo por campo manualmente.
+  function clearFormForNextClient() {
+    if (saveDraftTimer) clearTimeout(saveDraftTimer);
+    form.reset();
+    safeLSRemove(DRAFT_KEY);
+    statusText.textContent = INITIAL_STATUS_TEXT;
+  }
 
   // ---------- Codificação Unicode-segura para Base64 ----------
   function b64EncodeUnicode(str) {
@@ -361,7 +372,8 @@
         var filePrefix = form.dataset.filePrefix || "Ficha";
         var filename = filePrefix + "_" + sanitizeFilename(data[primaryName]) + ".pdf";
         doc.save(filename);
-        toast.textContent = "PDF gerado com sucesso.";
+        clearFormForNextClient();
+        toast.textContent = "PDF gerado com sucesso. Formulário limpo para o próximo atendimento.";
         toast.className = "toast ok";
       })
       .catch(function (err) {
