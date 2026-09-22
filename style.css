@@ -195,10 +195,27 @@ body{
   flex-wrap:wrap;
   gap:10px;
   align-items:center;
-  justify-content:space-between;
   margin-bottom: 20px;
 }
-.toolbar-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+/* status-pill's text changes length constantly while typing (autosave
+   messages, "Preenchendo…", etc). It used to sit in a justify-content:
+   space-between row, so every length change reflowed the toolbar buttons
+   sideways and shifted the whole document below — the "tela se mexendo"
+   bug. Fixing it to grow/shrink within its own flex slot and truncating
+   its text instead keeps the toolbar's footprint constant regardless of
+   what the status text says. */
+.status-pill{ flex: 1 1 180px; min-width: 0; }
+#statusText{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.toolbar-actions{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  flex: 0 0 auto;
+  margin-left:auto;
+}
 button{
   font-family:inherit;
   font-size: 13.5px;
