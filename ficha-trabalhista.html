@@ -19,9 +19,8 @@
       <div class="status-pill"><span class="status-dot" id="statusDot"></span><span id="statusText">Formulário pronto para preenchimento</span></div>
       <div class="toolbar-actions">
         <span class="toast" id="pdfToast"></span>
-        <input type="file" id="inputCarregarDados" accept="application/json" hidden>
-        <button type="button" id="btnCarregarDados">Carregar dados</button>
-        <button type="button" id="btnSalvarDados">Salvar dados</button>
+        <input type="file" id="inputCarregarPdf" accept="application/pdf" hidden>
+        <button type="button" id="btnCarregarPdf">Carregar PDF</button>
         <button type="button" class="primary" id="btnGerarPdf">Gerar PDF</button>
       </div>
     </div>
@@ -231,6 +230,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
