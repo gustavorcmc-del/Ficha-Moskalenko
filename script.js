@@ -126,7 +126,9 @@
     return withStaticValues(sheet, function () {
       return window
         .html2canvas(sheet, {
-          scale: Math.min(2, window.devicePixelRatio > 1 ? 2 : 1.6),
+          // Fixed, generous resolution — text sharpness depends on this,
+          // not on the viewer's own screen density.
+          scale: 3,
           useCORS: true,
           backgroundColor: "#ffffff",
           windowWidth: sheet.scrollWidth,
@@ -167,11 +169,13 @@
               0, 0, canvas.width, sliceHeightPx
             );
 
-            var imgData = sliceCanvas.toDataURL("image/jpeg", 0.95);
+            // PNG (lossless) instead of JPEG — JPEG's compression is what
+            // was softening the text; PNG keeps every edge crisp.
+            var imgData = sliceCanvas.toDataURL("image/png");
             var sliceHeightMm = sliceHeightPx / pxPerMm;
 
             if (!first) doc.addPage();
-            doc.addImage(imgData, "JPEG", 0, 0, PAGE_W, sliceHeightMm);
+            doc.addImage(imgData, "PNG", 0, 0, PAGE_W, sliceHeightMm, undefined, "FAST");
             first = false;
 
             renderedY += sliceHeightPx;
