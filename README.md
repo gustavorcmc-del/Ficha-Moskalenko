@@ -1,3 +1,4 @@
+[README.md](https://github.com/user-attachments/files/32527803/README.md)
 # Fichas Cliente — Moskalenko Advogados
 
 Site estático (HTML + CSS + JS puro) com as fichas digitais de atendimento
@@ -55,19 +56,38 @@ Não há build, backend ou dependências para instalar — é só abrir o
   o mesmo nome de arquivo — ela é usada automaticamente no cabeçalho de
   todas as páginas e, por consequência, também aparece no PDF gerado.
 
-## Continuar uma ficha depois ("Salvar dados" / "Carregar dados")
+## Editar uma ficha depois de gerar o PDF ("Carregar PDF")
 
-O PDF gerado é só uma "foto" da tela — não dá para editar o texto dentro
-dele depois de baixado. Para quem esquece de preencher algum campo e precisa
-completar a ficha mais tarde (ou passar para outra pessoa terminar), use os
-botões ao lado de "Gerar PDF":
+O PDF baixado é uma "foto" fiel da tela — o texto dentro dele não pode ser
+editado diretamente num programa como o Adobe Reader. Para poder continuar
+uma ficha depois (informação que faltou, correção, ou repassar para outra
+pessoa terminar), cada PDF gerado carrega uma **última página extra**,
+identificada como "Página de dados internos — não faz parte da ficha", que
+guarda os dados preenchidos de forma escondida (como texto, não como
+imagem). Essa página pode ser removida sem problema ao entregar a ficha
+oficialmente — ela só existe para o próprio site conseguir reler depois.
 
-- **Salvar dados**: baixa um arquivo `.json` (não é o PDF) com tudo que foi
-  digitado até aquele momento.
-- **Carregar dados**: abre esse arquivo `.json` de volta e preenche o
-  formulário automaticamente — inclusive campos de rádio como "Motivo do
-  desligamento" — pronto para completar o que faltava.
+Fluxo:
 
-Depois de carregar e completar os dados, é só clicar em "Gerar PDF"
-normalmente. O arquivo `.json` não tem nenhuma formatação, só serve como
-"rascunho" para o próprio site reabrir depois.
+1. Preenche o que der e clica em **Gerar PDF** — o arquivo baixado já leva
+   os dados internos.
+2. Mais tarde (mesmo dias depois, em outro computador), abre a ficha no
+   site, clica em **Carregar PDF** e seleciona esse mesmo arquivo.
+3. O formulário é preenchido automaticamente com tudo que já estava lá —
+   inclusive campos de rádio como "Motivo do desligamento".
+4. Completa ou corrige o que precisar e clica em **Gerar PDF** de novo.
+
+Por trás dos panos isso usa a biblioteca [pdf.js](https://mozilla.github.io/pdf.js/)
+para ler o texto da última página do PDF enviado. Se o PDF carregado não
+tiver essa página (por exemplo, se foi gerado por uma versão antiga do site,
+ou se a página de dados foi removida antes), aparece um aviso claro
+explicando isso, sem travar o formulário.
+
+## Rascunho automático no navegador
+
+Além disso, enquanto a pessoa digita, o formulário salva sozinho um
+rascunho no navegador do computador (não é enviado a lugar nenhum). Fechar a
+aba e voltar depois — mesmo dias depois, no mesmo computador — recupera os
+dados automaticamente ao abrir a ficha de novo, sem precisar de nenhum
+botão. Isso é só uma conveniência local; para levar a ficha para outro
+computador ou pessoa, use o "Carregar PDF" descrito acima.
